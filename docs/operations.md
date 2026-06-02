@@ -3,21 +3,32 @@
 ## Предварительные требования
 
 - Yandex Cloud CLI авторизован локально через `yc init`.
-- Для Terraform экспортированы `TF_VAR_yc_cloud_id`, `TF_VAR_yc_folder_id` и либо `TF_VAR_yc_token`, либо `TF_VAR_yc_service_account_key_file`.
+- Для Terraform в локальном ignored `terraform.tfvars` заданы стабильные `yc_cloud_id`, `yc_folder_id`, `github_owner`, а перед запуском экспортирован short-lived `TF_VAR_yc_token` или путь к service account key file.
 - Terraform установлен.
 - Docker установлен.
 - `gh` авторизован, а `GITHUB_TOKEN` указывает на токен с доступом к backend/frontend репозиториям.
 - Docker настроен для push в Yandex Container Registry после создания registry: `yc container registry configure-docker`.
 - GitHub Environment `production` создавать вручную не нужно: Terraform создает его сам.
 
+`terraform.tfvars` хранится только локально и игнорируется Git. Его удобно использовать для стабильных значений, которые не протухают:
+
+```hcl
+default_zone = "ru-central1-a"
+project      = "unijobs"
+github_owner = "hirotasoshu"
+
+yc_cloud_id  = "b1gp6d711skigtbd4ueo"
+yc_folder_id = "b1gls2borktlo05v2fvs"
+```
+
 Минимальный набор env vars перед локальным запуском Terraform:
 
 ```bash
-export TF_VAR_yc_cloud_id="$(yc config get cloud-id)"
-export TF_VAR_yc_folder_id="$(yc config get folder-id)"
 export TF_VAR_yc_token="$(yc iam create-token)"
 export GITHUB_TOKEN="$(gh auth token)"
 ```
+
+`yc_token` лучше не класть в `terraform.tfvars`: это секрет и short-lived значение, которое быстро протухает. `GITHUB_TOKEN` тоже лучше держать в окружении, потому что GitHub provider стандартно читает его из env.
 
 Если Terraform запускается от отдельного service account, вместо `TF_VAR_yc_token` используйте `TF_VAR_yc_service_account_key_file` с путем к JSON key-файлу. `YC_SERVICE_ACCOUNT_KEY_FILE` напрямую не используется: provider читает именно input variable `yc_service_account_key_file`.
 
@@ -28,7 +39,7 @@ cd unijobs-deploy/bootstrap
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Заполните `github_owner`, затем выполните:
+Заполните `github_owner`, `yc_cloud_id`, `yc_folder_id`, затем выполните:
 
 ```bash
 terraform init
