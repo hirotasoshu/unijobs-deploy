@@ -1,0 +1,9 @@
+default_zone = "ru-central1-a"
+project      = "unijobs"
+github_owner = "<github-user-or-org>"
+
+# Optional: if unset, Terraform pulls this public image and pushes it into the created YCR registry as bootstrap placeholder.
+# bootstrap_backend_image_source = "traefik/whoami:latest"
+
+# Optional: skip local placeholder image push and use an existing image instead.
+# backend_image_url = "cr.yandex/<registry-id>/unijobs-backend:latest"
